@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Office Meeting Room Hub</title>
+    
+    <!-- PWA / App Icon Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rooms">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg">
+
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #f0f4fd 0%, #e0e8f7 100%);
+            min-height: 100vh;
+            /* Prevent overscroll bounce on mobile */
+            overscroll-behavior-y: none;
+        }
+        
+        /* Hide scrollbar for horizontal scrolling but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 20px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        /* App-like Room Chips */
+        .room-chip {
+            flex: 0 0 auto;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Smooth touch tapping */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .room-chip:active {
+            transform: scale(0.96);
+        }
+        
+        /* Active chip styling */
+        .active-chip {
+            background: #ffffff;
+            box-shadow: 0 0 0 2px #4f46e5, 0 6px 16px -4px rgba(79, 70, 229, 0.25);
+            border-color: transparent;
+        }
+        .active-chip .status-dot {
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            /* Make iframe take remaining vertical space on mobile */
+            height: calc(100vh - 190px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Taller calendar on desktop */
+        @media (min-width: 640px) {
+            .iframe-container { height: calc(100vh - 240px); }
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Animated background blobs */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.6;
+            z-index: -1;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+        .blob-1 {
+            top: -10%; left: -10%;
+            width: 60vw; height: 60vw;
+            background: #c7d2fe;
+            animation-delay: 0s;
+        }
+        .blob-2 {
+            bottom: -5%; right: -10%;
+            width: 70vw; height: 70vw;
+            background: #ddd6fe;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 5%) scale(1.05); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased overflow-hidden">
+
+    <!-- Decorative Background -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- Mobile-Optimized Header -->
+    <header class="glass sticky top-0 z-20 border-b-0 pb-3 pt-safe w-full">
+        <!-- pt-safe handles iPhone notches if added as PWA -->
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl shadow-md text-white flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-slate-800 tracking-tight leading-none">Meeting Rooms</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="live-clock" class="text-[12px] font-bold text-emerald-700 tracking-wider">--:--</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 h-full flex flex-col">
+        <!-- Scrollable Room Chips -->
+        <!-- Placed closer to header, uses horizontal scrolling on phone to save vertical space -->
+        <div class="mb-4">
+            <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 px-1 -mx-1" style="-webkit-overflow-scrolling: touch;">
+                <!-- Room 1 -->
+                <button onclick="switchRoom('room1', this)" 
+                        class="room-chip active-chip glass flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-white/60 shadow-sm min-w-max">
+                    <span class="status-dot w-2.5 h-2.5 rounded-full" style="background-color: #f09300; color: #f09300;"></span>
+                    <div class="text-left flex flex-col">
+                        <span class="font-bold text-sm text-slate-800 leading-tight">Room 1</span>
+                        <span class="text-[10px] font-medium text-slate-500">Cap: 13</span>
+                    </div>
+                </button>
+                
+                <!-- Room 2 -->
+                <button onclick="switchRoom('room2', this)" 
+                        class="room-chip glass flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-white/60 shadow-sm min-w-max">
+                    <span class="status-dot w-2.5 h-2.5 rounded-full" style="background-color: #7986cb; color: #7986cb;"></span>
+                    <div class="text-left flex flex-col">
+                        <span class="font-bold text-sm text-slate-800 leading-tight">Room 2</span>
+                        <span class="text-[10px] font-medium text-slate-500">Cap: 9</span>
+                    </div>
+                </button>
+
+                <!-- Room 3 -->
+                <button onclick="switchRoom('room3', this)" 
+                        class="room-chip glass flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-white/60 shadow-sm min-w-max">
+                    <span class="status-dot w-2.5 h-2.5 rounded-full" style="background-color: #795548; color: #795548;"></span>
+                    <div class="text-left flex flex-col">
+                        <span class="font-bold text-sm text-slate-800 leading-tight">Room 3</span>
+                        <span class="text-[10px] font-medium text-slate-500">Cap: 5</span>
+                    </div>
+                </button>
+
+                <!-- Room 4 -->
+                <button onclick="switchRoom('room4', this)" 
+                        class="room-chip glass flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-white/60 shadow-sm min-w-max">
+                    <span class="status-dot w-2.5 h-2.5 rounded-full" style="background-color: #d81b60; color: #d81b60;"></span>
+                    <div class="text-left flex flex-col">
+                        <span class="font-bold text-sm text-slate-800 leading-tight">Room 4</span>
+                        <span class="text-[10px] font-medium text-slate-500">Cap: 5</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Calendar Display -->
+        <div class="glass p-1.5 sm:p-3 rounded-[1.5rem] shadow-xl shadow-indigo-100/50 flex-grow mb-4 flex flex-col">
+            <div class="iframe-container bg-white flex-grow rounded-2xl">
+                <!-- Room 1 is visible by default -->
+                <!-- We append &mode=AGENDA for mobile to show a list view by default natively (if Google calendar supports it based on width, otherwise it's responsive) -->
+                <iframe id="calendar-iframe" src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FBangkok&showPrint=0&mode=AGENDA&src=Y18xODhhNDA1MmhpNDJtaGpxaXEzYjNwbmpxbzlhYUByZXNvdXJjZS5jYWxlbmRhci5nb29nbGUuY29t&color=%23f09300"></iframe>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const rooms = {
+            room1: "https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FBangkok&showPrint=0&mode=AGENDA&src=Y18xODhhNDA1MmhpNDJtaGpxaXEzYjNwbmpxbzlhYUByZXNvdXJjZS5jYWxlbmRhci5nb29nbGUuY29t&color=%23f09300",
+            room2: "https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FBangkok&showPrint=0&mode=AGENDA&src=Y18xODg2bjVvdXVuZmVham1mbmx0bGdtdWNhaGZmb0ByZXNvdXJjZS5jYWxlbmRhci5nb29nbGUuY29t&color=%237986cb",
+            room3: "https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FBangkok&showPrint=0&mode=AGENDA&src=Y18xODg1aWlma2NzMzUyZzY2ajN2MTE0azluN2Rsc0ByZXNvdXJjZS5jYWxlbmRhci5nb29nbGUuY29t&color=%23795548",
+            room4: "https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FBangkok&showPrint=0&mode=AGENDA&src=Y18xODg4cXFlNTU3aWVraTNlbDk0MzV2ZWhpdmthY0ByZXNvdXJjZS5jYWxlbmRhci5nb29nbGUuY29t&color=%23d81b60"
+        };
+
+        function switchRoom(roomId, element) {
+            // Update iframe
+            const iframe = document.getElementById('calendar-iframe');
+            
+            // Add a subtle fade effect during switch
+            iframe.style.opacity = '0.5';
+            setTimeout(() => {
+                iframe.src = rooms[roomId];
+                iframe.onload = () => { iframe.style.opacity = '1'; };
+            }, 100);
+
+            // Update button styles
+            const buttons = document.querySelectorAll('.room-chip');
+            buttons.forEach(btn => btn.classList.remove('active-chip'));
+            element.classList.add('active-chip');
+        }
+
+        // Live Clock Feature
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('live-clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Initialize immediately
+
+        // Auto-select Room from QR Code (URL Query Params)
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const requestedRoom = params.get('room'); // e.g. ?room=room3
+            
+            if (requestedRoom && rooms[requestedRoom]) {
+                const targetBtn = document.querySelector(`button[onclick="switchRoom('${requestedRoom}', this)"]`);
+                if (targetBtn) {
+                    switchRoom(requestedRoom, targetBtn);
+                    // Scroll the chip into view horizontally so they can see it
+                    targetBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+
+            // PWA Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').then((registration) => {
+                    console.log('ServiceWorker registration successful');
+                }).catch((err) => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
