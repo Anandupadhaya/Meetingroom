@@ -183,15 +183,6 @@
                     </div>
                 </button>
 
-                <!-- Room 4 -->
-                <button onclick="switchRoom('room4', this)" 
-                        class="room-chip glass flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-white/60 shadow-sm min-w-max">
-                    <span class="status-dot w-2.5 h-2.5 rounded-full" style="background-color: #d81b60; color: #d81b60;"></span>
-                    <div class="text-left flex flex-col">
-                        <span class="font-bold text-sm text-slate-800 leading-tight">Room 4</span>
-                        <span class="text-[10px] font-medium text-slate-500">Cap: 5</span>
-                    </div>
-                </button>
             </div>
         </div>
 
@@ -200,17 +191,16 @@
             <div class="iframe-container bg-white flex-grow rounded-2xl">
                 <!-- Room 1 is visible by default -->
                 <!-- We append &mode=AGENDA for mobile to show a list view by default natively -->
-                <iframe id="calendar-iframe" src="https://calendar.google.com/calendar/embed?src=c_188a4052hi42mhjqiq3b3pnjqo9aa%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23f09300"></iframe>
+                <iframe id="calendar-iframe" src="https://calendar.google.com/calendar/embed?src=c_1880cok3jecckjmqj9ik6ss9nu3qk%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23f09300"></iframe>
             </div>
         </div>
     </main>
 
     <script>
         const rooms = {
-            room1: "https://calendar.google.com/calendar/embed?src=c_188a4052hi42mhjqiq3b3pnjqo9aa%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23f09300",
-            room2: "https://calendar.google.com/calendar/embed?src=c_1886n5ouunfeajmfnltlgmucahffo%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%237986cb",
-            room3: "https://calendar.google.com/calendar/embed?src=c_1885iifkcs352g66j3v114k9n7dls%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23795548",
-            room4: "https://calendar.google.com/calendar/embed?src=c_1888qqe557ieki3el9435vehivkac%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23d81b60"
+            room1: "https://calendar.google.com/calendar/embed?src=c_1880cok3jecckjmqj9ik6ss9nu3qk%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23f09300",
+            room2: "https://calendar.google.com/calendar/embed?src=c_1880p58okinr8js9h3mee02pj1q8c%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%237986cb",
+            room3: "https://calendar.google.com/calendar/embed?src=c_188ccos84ef8sjapni6ff6s2cg890%40resource.calendar.google.com&ctz=Asia%2FBangkok&mode=AGENDA&color=%23795548"
         };
 
         function switchRoom(roomId, element) {
@@ -265,4 +255,3 @@
     </script>
 </body>
 </html>
-
